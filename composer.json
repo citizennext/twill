@@ -1,5 +1,5 @@
 {
-  "name": "area17/twill",
+  "name": "citizennext/twill",
   "type": "library",
   "license": "Apache-2.0",
   "description": "Twill is an open source CMS toolkit for Laravel that helps developers rapidly create a custom admin console that is intuitive, powerful and flexible.",
@@ -40,7 +40,7 @@
     "myclabs/php-enum": "^1.5",
     "pragmarx/google2fa-qrcode": "^1.0|^2.0",
     "spatie/laravel-activitylog": "^2.5|^3.2|^4.0",
-    "spatie/laravel-analytics": "^3.6|^4.0",
+    "spatie/laravel-analytics": "^4.0",
     "spatie/once": "^2.0|^3.0"
   },
   "require-dev": {
