@@ -72,7 +72,7 @@
             </section>
         </div>
 
-        <form style="display: none" method="POST" action="{{ route('admin.logout') }}" data-logout-form>
+        <form style="display: none" method="POST" action="{{ route('admin.logout') }}" data-logout-form id="logout-form">
             @csrf
         </form>
 
