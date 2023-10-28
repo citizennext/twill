@@ -2,6 +2,7 @@
 
 namespace A17\Twill\Http\Middleware;
 
+use Closure;
 use Illuminate\Auth\Middleware\Authenticate as Middleware;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Redirect;
@@ -9,14 +10,10 @@ use Illuminate\Support\Facades\URL;
 
 class Authenticate extends Middleware
 {
-
     /**
-     * @param $request
-     * @param \Closure $next
-     * @param ...$guards
-     * @return mixed
+     * {@inheritDoc}
      */
-    public function handle($request, $next, ...$guards)
+    public function handle($request, Closure $next, ...$guards)
     {
         $this->authenticate($request, $guards);
 
@@ -24,25 +21,22 @@ class Authenticate extends Middleware
             (
                 !$request->user() ||
                 !$request->user()->published
-            ) && $request->route()->getName() !== 'admin.login.form'
+            ) && $request->route()?->getName() !== 'twill.login.form'
         ) {
             Auth::logout();
             return $request->expectsJson()
                 ? abort(403, 'Your account is not verified.')
-                : Redirect::guest(URL::route('admin.login.form'));
+                : Redirect::guest(URL::route('twill.login.form'));
         }
 
         return $next($request);
     }
 
     /**
-     * Get the path the user should be redirected to when they are not authenticated.
-     *
-     * @param  \Illuminate\Http\Request  $request
-     * @return string|null
+     * {@inheritDoc}
      */
     protected function redirectTo($request)
     {
-        return route('admin.login.form');
+        return route('twill.login.form');
     }
 }

@@ -6,7 +6,7 @@
     </div>
     <draggable class="slideshow__content" v-model="slides" :options="dragOptions" v-if="slides.length">
       <transition-group name="draggable_list" tag='div'>
-        <div class="slide" v-for="(slide, index) in slides" :key="slide.id">
+        <div class="slide" v-for="(slide, index) in slides" :key="`${slide.id}_${index}`">
             <div class="slide__handle" v-if="!disabled">
               <div class="slide__handle--drag"></div>
             </div>
@@ -36,14 +36,13 @@
 </template>
 
 <script>
+  import draggable from 'vuedraggable'
   import { mapState } from 'vuex'
-  import { MEDIA_LIBRARY } from '@/store/mutations'
 
   import draggableMixin from '@/mixins/draggable'
-  import mediaLibrayMixin from '@/mixins/mediaLibrary/mediaLibrary.js'
   import mediaFieldMixin from '@/mixins/mediaField.js'
-
-  import draggable from 'vuedraggable'
+  import mediaLibrayMixin from '@/mixins/mediaLibrary/mediaLibrary.js'
+  import { MEDIA_LIBRARY } from '@/store/mutations'
 
   export default {
     name: 'A17Slideshow',
@@ -110,6 +109,10 @@
       deleteSlideshow: function () {
         // destroy all the medias of the slideshow
         this.$store.commit(MEDIA_LIBRARY.DESTROY_MEDIAS, this.name)
+      },
+      destroyValue: function () {
+        if (this.isSlide) return // for Slideshows : the medias are deleted when the slideshow component is destroyed (so no need to do it here)
+        if (!this.isDestroyed) this.deleteMedia()
       }
     }
   }
