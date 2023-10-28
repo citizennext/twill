@@ -244,38 +244,38 @@ class DashboardController extends Controller
 
         // @todo: Improve readability of what is happening here.
         return [
-            'id' => $activity->id,
-            'type' => ucfirst($dashboardModule['label_singular'] ?? Str::singular($dashboardModule['name'])),
-            'date' => $activity->created_at->toIso8601String(),
-            'author' => $activity->causer->name ?? twillTrans('twill::lang.dashboard.unknown-author'),
-            'name' => $activity->subject->titleInDashboard ?? $activity->subject->title,
-            'activity' => twillTrans('twill::lang.dashboard.activities.' . $activity->description, $activity->properties->toArray()),
-        ] + (classHasTrait($activity->subject, HasMedias::class) ? [
-            'thumbnail' => $activity->subject->defaultCmsImage(['w' => 100, 'h' => 100]),
-        ] : []) + (! $activity->subject->trashed() ? [
-            'edit' => moduleRoute(
-                $dashboardModule['name'],
-                $dashboardModule['routePrefix'] ?? null,
-                'edit',
-                array_merge($parentRelationship ? [$parent->id] : [], [$activity->subject_id])
-            ),
-        ] : []) + (! is_null($activity->subject->published) ? [
-            'published' => $activity->description === 'published' ? true : ($activity->description === 'unpublished' ? false : $activity->subject->published),
-        ] : []);
+                'id' => $activity->id,
+                'type' => ucfirst($dashboardModule['label_singular'] ?? Str::singular($dashboardModule['name'])),
+                'date' => $activity->created_at->toIso8601String(),
+                'author' => $activity->causer->name ?? twillTrans('twill::lang.dashboard.unknown-author'),
+                'name' => $activity->subject->titleInDashboard ?? $activity->subject->title,
+                'activity' => twillTrans('twill::lang.dashboard.activities.' . $activity->description, $activity->properties->toArray()),
+            ] + (classHasTrait($activity->subject, HasMedias::class) ? [
+                'thumbnail' => $activity->subject->defaultCmsImage(['w' => 100, 'h' => 100]),
+            ] : []) + (! $activity->subject->trashed() ? [
+                'edit' => moduleRoute(
+                    $dashboardModule['name'],
+                    $dashboardModule['routePrefix'] ?? null,
+                    'edit',
+                    array_merge($parentRelationship ? [$parent->id] : [], [$activity->subject_id])
+                ),
+            ] : []) + (! is_null($activity->subject->published) ? [
+                'published' => $activity->description === 'published' ? true : ($activity->description === 'unpublished' ? false : $activity->subject->published),
+            ] : []);
     }
 
     private function formatAuthActivity(Activity $activity): array
     {
         return [
-            'id' => $activity->id,
-            'type' => twillTrans('twill::lang.auth.auth-causer'),
-            'date' => $activity->created_at->toIso8601String(),
-            'author' => $activity->causer->name ?? twillTrans('twill::lang.dashboard.unknown-author'),
-            'name' => ucfirst($activity->description) ?? '',
-            'activity' => twillTrans('twill::lang.dashboard.activities.' . $activity->description, $activity->properties->toArray()),
-        ] + (classHasTrait($activity->subject, HasMedias::class) ? [
-            'thumbnail' => $activity->subject->defaultCmsImage(['w' => 100, 'h' => 100]),
-        ] : []);
+                'id' => $activity->id,
+                'type' => twillTrans('twill::lang.auth.auth-causer'),
+                'date' => $activity->created_at->toIso8601String(),
+                'author' => $activity->causer->name ?? twillTrans('twill::lang.dashboard.unknown-author'),
+                'name' => ucfirst($activity->description) ?? '',
+                'activity' => twillTrans('twill::lang.dashboard.activities.' . $activity->description, $activity->properties->toArray()),
+            ] + (classHasTrait($activity->subject, HasMedias::class) ? [
+                'thumbnail' => $activity->subject->defaultCmsImage(['w' => 100, 'h' => 100]),
+            ] : []);
     }
 
     /**
@@ -284,12 +284,12 @@ class DashboardController extends Controller
     private function getFacts()
     {
         /** @var Analytics $analytics */
-        $analytics = app(Analytics::class);
+        $analytics = app()->makeWith(Analytics::class, ['propertyId' => config('analytics.property_id')]);
         try {
-            $response = $analytics->performQuery(
+            $response = $analytics->get(
                 Period::days(60),
-                'ga:users,ga:pageviews,ga:bouncerate,ga:pageviewsPerSession',
-                ['dimensions' => 'ga:date']
+                ['totalUsers', 'screenPageViews', 'bounceRate', 'screenPageViewsPerSession'],
+                ['date']
             );
         } catch (InvalidConfiguration $exception) {
             $this->logger->error($exception);
@@ -297,13 +297,13 @@ class DashboardController extends Controller
             return [];
         }
 
-        $statsByDate = Collection::make($response['rows'] ?? [])->map(function (array $dateRow) {
+        $statsByDate = $response->map(function (array $item) {
             return [
-                'date' => $dateRow[0],
-                'users' => (int) $dateRow[1],
-                'pageViews' => (int) $dateRow[2],
-                'bounceRate' => $dateRow[3],
-                'pageviewsPerSession' => $dateRow[4],
+                'date' => $item['date'],
+                'users' => (int) $item['totalUsers'],
+                'pageViews' => (int) $item['screenPageViews'],
+                'bounceRate' => $item['bounceRate'],
+                'pageviewsPerSession' => $item['screenPageViewsPerSession'],
             ];
         })->reverse()->values();
 
@@ -330,11 +330,11 @@ class DashboardController extends Controller
         }
 
         return Collection::make([
-            'today',
-            'yesterday',
-            'week',
-            'month',
-        ])->mapWithKeys(function ($period) use ($statsByDate, $dummyData) {
+                                    'today',
+                                    'yesterday',
+                                    'week',
+                                    'month',
+                                ])->mapWithKeys(function ($period) use ($statsByDate, $dummyData) {
             if ($dummyData) {
                 return [$period => $dummyData];
             }
