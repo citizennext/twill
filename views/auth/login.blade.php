@@ -11,7 +11,6 @@
 
     <fieldset class="login__fieldset">
         <label class="login__label" for="password">{{ twillTrans('twill::lang.auth.password') }}</label>
-        <a href="{{ route('admin.password.reset.link') }}" class="login__help f--small" tabindex="5"><span>{{ twillTrans('twill::lang.auth.forgot-password') }}</span></a>
         <input type="password" name="password" id="password" class="login__input" required tabindex="2" />
     </fieldset>
 
